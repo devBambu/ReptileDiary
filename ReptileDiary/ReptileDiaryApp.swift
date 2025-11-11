@@ -25,7 +25,8 @@ struct ReptileDiaryApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            //ContentView()
+            MainView()
         }
         .modelContainer(sharedModelContainer)
     }
