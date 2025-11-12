@@ -10,51 +10,17 @@ import SwiftUI
 struct MainView: View {
     let dateManager = DateManager.shared
     
-    @State private var selectedYear: String = "2025"
-    @State private var selectedMonth: String = "11"
-    
-    private let columns = Array(repeating: GridItem(.flexible()), count: 7)
-    let weekday = ["월", "화", "수", "목", "금", "토", "일"]
+    @State private var selectedYear: Int = 2025
+    @State private var selectedMonth: Int = 11
     
     var body: some View {
-        HStack {
-            Picker("Year", selection: $selectedYear) {
-                let yearRange = dateManager.getYearRange()
-                ForEach(Range<Int>(0...4)) {
-                    Text(yearRange[$0]).tag(yearRange[$0])
-                }
-            } currentValueLabel: {
-                Text("\(selectedYear)년")
-            }
-            
-            Picker("Month", selection: $selectedMonth) {
-                ForEach(Range<Int>(1...12)) {
-                    Text("\($0)").tag("\($0)")
-                }
-            } currentValueLabel: {
-                Text("\(selectedMonth)월")
-            }
-        }
-        
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 5) {
-                let range = dateManager.getDays($of: $selectedMonth)
-                ForEach(0..<38) { idx in
-                    if idx < 7 {
-                        Text(weekday[idx])
-                            .font(.headline)
-                            .foregroundColor(weekday[idx] == "일" ? Color.red : .black)
-                    }
-                    else {
-                        Text("\(idx - 6)")
-                    }
-                }
-                .frame(width: 40, height: 40)
-                .padding(1)
-                .background(Color.white)
-            }
-        }
-        .frame(width: 330, height: 300)
+        YearMonthPicker(year: $selectedYear, month: $selectedMonth, dateManager: dateManager)
+        CalendarGrid(year: selectedYear, month: selectedMonth, dateManager: dateManager)
+//        Form {
+//            DisclosureGroup(/*@START_MENU_TOKEN@*/"Group"/*@END_MENU_TOKEN@*/) {
+//                /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Content@*/Text("Content")/*@END_MENU_TOKEN@*/
+//            }
+//        }
     }
 }
 
@@ -62,31 +28,64 @@ struct MainView: View {
     MainView()
 }
 
-//struct yearMonthPicker: View {
-//    let dateManager = DateManager.shared
-//    
-//    @State private var selectedYear: String = "2025"
-//    @State private var selectedMonth: String = "11"
-//    
-//    var body: some View {
-//        HStack {
-//            Picker("Year", selection: $selectedYear) {
-//                let yearRange = dateManager.getYearRange()
-//                ForEach(Range<Int>(0...4)) {
-//                    Text(yearRange[$0]).tag(yearRange[$0])
-//                }
-//            } currentValueLabel: {
-//                Text("\(selectedYear)년")
-//            }
-//            
-//            Picker("Month", selection: $selectedMonth) {
-//                ForEach(Range<Int>(1...12)) {
-//                    Text("\($0)").tag("\($0)")
-//                }
-//            } currentValueLabel: {
-//                Text("\(selectedMonth)월")
-//            }
-//        }
-//    }
-//}
+struct YearMonthPicker: View {
+    @Binding var year: Int
+    @Binding var month: Int
+    
+    let dateManager: DateManager
+    
+    var body: some View {
+        HStack {
+            Picker("Year", selection: $year) {
+                let yearRange = dateManager.getYearRange()
+                ForEach(0..<5) {
+                    Text(yearRange[$0]).tag(yearRange[$0])
+                }
+            } currentValueLabel: {
+                Text("\(String(format: "%04d", year))년")
+            }
+            
+            Picker("Month", selection: $month) {
+                ForEach(0..<12) {
+                    Text("\($0 + 1)").tag($0 + 1)
+                }
+            } currentValueLabel: {
+                Text("\(month)월")
+            }
+        }
+    }
+}
 
+struct CalendarGrid: View {
+    let year: Int
+    let month: Int
+    let dateManager: DateManager
+    
+    private let columns = Array(repeating: GridItem(.flexible()), count: 7)
+    let weekday = ["월", "화", "수", "목", "금", "토", "일"]
+    
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 5) {
+            let last = dateManager.getLastDay(of: month)
+            let range = dateManager.getRange(year: year, month: month)
+            let gap = range - last
+            ForEach(0..<(range + 7)) { idx in
+                if idx < 7 {
+                    Text(weekday[idx])
+                        .font(.headline)
+                        .foregroundColor(weekday[idx] == "일" ? Color.red : .black)
+                } else if idx < gap + 7 {
+                    let a = dateManager.getWeekday(year: year, month: month, day: 1)
+                    Text("")
+                } else {
+                    Text("\(idx - gap - 6)")
+                }
+            }
+            .frame(width: 40, height: 40)
+            .padding(1)
+            .background(Color.white)
+        }
+        .id(month)
+        .frame(width: 330, height: 300)
+    }
+}

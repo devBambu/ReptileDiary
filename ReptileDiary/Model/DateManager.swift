@@ -11,8 +11,12 @@ import SwiftUI
 class DateManager {
     static var shared = DateManager()
     
-    let calendar = Calendar.current
+    var calendar = Calendar.current
     lazy var today = calendar.dateComponents(in: .current, from: Date())
+    
+    func setCalendar() {
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
+    }
     
     func getYearRange() -> [String] {
         guard let year = today.year else { return [] }
@@ -21,21 +25,36 @@ class DateManager {
         }
     }
     
-    func getDays(@Binding of month: String) -> Range<Int> {
+    func getLastDay(of month: Int) -> Int {
         switch month {
-        case "1", "3", "5", "7", "8", "10", "12":
-            print(Range<Int>(1...31))
-            return Range<Int>(1...31)
-        case "2":
-            print(Range<Int>(1...28))
-            return Range<Int>(1...28)
-        case "4", "6", "9", "11":
-            print(Range<Int>(1...30))
-            return Range<Int>(1...30)
+        case 1, 3, 5, 7, 8, 10, 12:
+            return 31
+        case 2:
+            return 28
+        case 4, 6, 9, 11:
+            return 30
         default:
-            print(Range<Int>(0...0))
-            return Range<Int>(0...0)
+            return 0
         }
     }
     
+    func getWeekday(year: Int, month: Int, day: Int) -> Int {
+        guard let date = calendar.date(from: DateComponents(year: year, month: month, day: day)) else {
+            print("Invalid date")
+            return 0
+        }
+        
+//        var localeC = calendar
+//        localeC.timeZone = TimeZone(identifier: <#T##String#>)
+        
+        let weekday = calendar.component(.weekday, from: date)
+        return weekday
+    }
+    
+    func getRange(year: Int, month: Int) -> Int {
+        let days = getLastDay(of: month)
+        let firstWeekday = getWeekday(year: year, month: month, day: 1)
+        return firstWeekday == 1 ? days + 6 : days + (firstWeekday - 2)
+    }
 }
+
