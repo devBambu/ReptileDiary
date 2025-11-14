@@ -14,11 +14,21 @@ struct MainView: View {
     @State private var selectedMonth: Int = 11
     
     var body: some View {
+        HStack{
+            Image(systemName: "lizard.fill")
+            Text("마뱀일기")
+                .font(.title)
+                .fontWeight(.bold)
+            
+        }
         YearMonthPicker(year: $selectedYear, month: $selectedMonth, dateManager: dateManager)
         CalendarGrid(year: selectedYear, month: selectedMonth, dateManager: dateManager)
 //        Form {
-//            DisclosureGroup(/*@START_MENU_TOKEN@*/"Group"/*@END_MENU_TOKEN@*/) {
-//                /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Content@*/Text("Content")/*@END_MENU_TOKEN@*/
+//            List {
+//                HStack{
+//                    Image(systemName: "fork.knife.circle")
+//                    Text("이름")
+//                }
 //            }
 //        }
     }
@@ -75,7 +85,6 @@ struct CalendarGrid: View {
                         .font(.headline)
                         .foregroundColor(weekday[idx] == "일" ? Color.red : .black)
                 } else if idx < gap + 7 {
-                    let a = dateManager.getWeekday(year: year, month: month, day: 1)
                     Text("")
                 } else {
                     Text("\(idx - gap - 6)")
@@ -89,3 +98,4 @@ struct CalendarGrid: View {
         .frame(width: 330, height: 300)
     }
 }
+
