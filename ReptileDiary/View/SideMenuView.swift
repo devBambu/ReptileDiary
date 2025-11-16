@@ -1,3 +1,12 @@
+//
+//  SideMenuView.swift
+//  ReptileDiary
+//
+//  Created by 변예린 on 11/15/25.
+//
+import SwiftUI
+
+// 사이드 메뉴 전체 화면(회색 부분 포함)
 struct SideMenuView: View {
     @Binding var isShowing: Bool
 
@@ -23,6 +32,7 @@ struct SideMenuView: View {
     
 }
 
+// 사이드 메뉴 부분 화면(흰색 부분)
 struct SideMenu: View {
     var body: some View {
         HStack {

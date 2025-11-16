@@ -14,8 +14,14 @@ class DateManager {
     var calendar = Calendar.current
     lazy var today = calendar.dateComponents(in: .current, from: Date())
     
-    func setCalendar() {
+    var formatter = DateFormatter()
+    
+    func getDate(year: Int, month: Int, day: Int) -> Date {
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        guard let date = calendar.date(from: DateComponents(year: year, month: month, day: day)) else {
+            return Date()
+        }
+        return date
     }
     
     func getYearRange() -> [String] {
@@ -44,9 +50,6 @@ class DateManager {
             return 0
         }
         
-//        var localeC = calendar
-//        localeC.timeZone = TimeZone(identifier: <#T##String#>)
-        
         let weekday = calendar.component(.weekday, from: date)
         return weekday
     }
@@ -54,7 +57,16 @@ class DateManager {
     func getRange(year: Int, month: Int) -> Int {
         let days = getLastDay(of: month)
         let firstWeekday = getWeekday(year: year, month: month, day: 1)
+        
         return firstWeekday == 1 ? days + 6 : days + (firstWeekday - 2)
+    }
+    
+    
+    func dateFormat(_ date: Date) -> String {
+        // guard let date = selectedDate else { return "" }
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy년 M월 d일 EEEE"
+        return formatter.string(from: date)
     }
 }
 

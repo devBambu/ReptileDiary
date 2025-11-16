@@ -10,10 +10,12 @@ import SwiftUI
 struct MainView: View {
     let dateManager = DateManager.shared
     
-    @State var presentSideMenu: Bool = false
+    @State private var presentSideMenu = false
+    @State private var presentSheet = false
     
     @State private var selectedYear: Int = 2025
     @State private var selectedMonth: Int = 11
+    @State var selectedDate: Date = Date()
     
     var body: some View {
         ZStack {
@@ -30,20 +32,19 @@ struct MainView: View {
                     } label: {
                         Image(systemName: "text.justify")
                     }
+                    .foregroundStyle(.gray)
 
                     Spacer()
                 }
                 
                 YearMonthPicker(year: $selectedYear, month: $selectedMonth, dateManager: dateManager)
-                CalendarGrid(year: selectedYear, month: selectedMonth, dateManager: dateManager)
-                //        Form {
-                //            List {
-                //                HStack{
-                //                    Image(systemName: "fork.knife.circle")
-                //                    Text("이름")
-                //                }
-                //            }
-                //        }
+                CalendarGrid(dateManager: dateManager, year: selectedYear, month: selectedMonth, selectedDate: $selectedDate)
+                
+                Divider().background(Color.red)
+                
+                Spacer(minLength: 30)
+                BottomSheet(dateManager: dateManager, date: selectedDate)
+
             }
             SideMenuView(isShowing: $presentSideMenu, content: AnyView(SideMenu()))
         }
@@ -70,6 +71,8 @@ struct YearMonthPicker: View {
             } currentValueLabel: {
                 Text("\(String(format: "%04d", year))년")
             }
+            .accentColor(.black)
+            
             
             Picker("Month", selection: $month) {
                 ForEach(0..<12) {
@@ -78,116 +81,79 @@ struct YearMonthPicker: View {
             } currentValueLabel: {
                 Text("\(month)월")
             }
+            .accentColor(.black)
         }
     }
 }
 
 struct CalendarGrid: View {
+    let dateManager: DateManager
+    
     let year: Int
     let month: Int
-    let dateManager: DateManager
+
+    @Binding var selectedDate: Date
     
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     let weekday = ["월", "화", "수", "목", "금", "토", "일"]
     
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 5) {
-            let last = dateManager.getLastDay(of: month)
-            let range = dateManager.getRange(year: year, month: month)
-            let gap = range - last
-            ForEach(0..<(range + 7)) { idx in
-                if idx < 7 {
+        VStack(spacing: 0) {
+            LazyVGrid(columns: columns, spacing: 5) {
+                ForEach(0..<7) { idx in
                     Text(weekday[idx])
                         .font(.headline)
-                        .foregroundColor(weekday[idx] == "일" ? Color.red : .black)
-                } else if idx < gap + 7 {
-                    Text("")
-                } else {
-                    Text("\(idx - gap - 6)")
+                        .foregroundColor(weekday[idx] == "일" ? .red : weekday[idx] == "토" ? .blue: .black)
                 }
-            }
-            .frame(width: 40, height: 40)
-            .padding(1)
-            .background(Color.white)
-        }
-        .id(month)
-        .frame(width: 330, height: 300)
-    }
-}
-
-struct SideMenuView: View {
-    @Binding var isShowing: Bool
-
-    var content: AnyView
-    var edgeTransition: AnyTransition = .move(edge: .trailing)
-    
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            if isShowing {
-                Color.black
-                    .opacity(0.5)
-                    .ignoresSafeArea()
-                    .onTapGesture { isShowing.toggle() }
-                content
-                    .transition(edgeTransition)
-                    .background(Color.clear)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .ignoresSafeArea()
-        .animation(.easeInOut, value: isShowing)
-    }
-    
-}
-
-struct SideMenu: View {
-    var body: some View {
-        HStack {
-            Spacer()
-            ZStack {
-                VStack(alignment: .trailing, spacing: 0) {
-                    ForEach(SideMenuRowType.allCases, id: \.self) { row in
-                        rowView(isSelected: true, imageName: row.iconName, title: row.title) {
-                            print(row.title)
-                        }
-                    }
-                    Spacer()
-                }
-                .padding(.top, 100)
-                .frame(width: 270)
+                .frame(width: 40, height: 40)
+                .padding(1)
                 .background(Color.white)
             }
+            .frame(width: 330)
+            
+            LazyVGrid(columns: columns, spacing: 5) {
+                let last = dateManager.getLastDay(of: month)
+                let range = dateManager.getRange(year: year, month: month)
+                let gap = range - last
+                ForEach(0..<range) { idx in
+                    if idx < gap {
+                        Text("")
+                    } else {
+                        let num = idx - gap + 1
+                    
+                        Button("\(num)") {
+                            if let date = dateManager.calendar.date(from: DateComponents(year: year, month: month, day: num)) {
+                                selectedDate = date
+                            }
+                        }
+                        .foregroundStyle(idx % 7 == 5 ? .blue : idx % 7 == 6 ? .red :.black)
+                    }
+                }
+                .frame(width: 40, height: 40)
+                .padding(1)
+                .background(Color.white)
+            }
+            .id(month)
+            .frame(width: 330, height: 300)
+            .padding(.top, -35)
         }
-        .background(.clear)
+    }
+}
+
+struct BottomSheet: View {
+    let dateManager: DateManager
+    let date: Date
+    
+    var body: some View {
+        VStack {
+            Text(dateManager.dateFormat(date))
+                .fontWeight(.medium)
+                .font(.system(size: 18))
+            List {
+                Image(systemName: "fork.knife.circle")
+            }
+            .background(Color.white)
+        }
     }
     
-    func rowView(isSelected: Bool, imageName: String, title: String, hideDivider: Bool = false, action: @escaping (() -> ())) -> some View {
-        Button {
-            action()
-        } label: {
-            VStack(alignment: .trailing) {
-                HStack(spacing: 20) {
-                    Rectangle()
-                        .fill(isSelected ? .purple : .white)
-                        .frame(width: 5)
-                    
-                    ZStack {
-                        Image(systemName: imageName)
-                            .resizable()
-                            .renderingMode(.template)
-                            .foregroundStyle(isSelected ? .black : .gray)
-                            .frame(width: 26, height: 26)
-                    }
-                    .frame(width: 30, height: 30)
-                    Text(title)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(isSelected ? .black : .gray)
-                    Spacer()
-                }
-            }
-        }
-        .frame(height: 50)
-        .background(LinearGradient(colors: [isSelected ? .purple.opacity(0.5) : .white, .white], startPoint: .leading, endPoint: .trailing))
-
-    }
 }
