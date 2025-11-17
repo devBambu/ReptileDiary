@@ -18,35 +18,37 @@ struct MainView: View {
     @State var selectedDate: Date = Date()
     
     var body: some View {
-        ZStack {
-            VStack{
-                HStack {
-                    Spacer()
-                    Image(systemName: "lizard.fill")
-                    Text("마뱀일기")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    Spacer()
-                    Button {
-                        presentSideMenu.toggle()
-                    } label: {
-                        Image(systemName: "text.justify")
+        NavigationView {
+            ZStack {
+                VStack{
+                    HStack {
+                        Spacer()
+                        Image(systemName: "lizard.fill")
+                        Text("마뱀일기")
+                            .font(.title)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Button {
+                            presentSideMenu.toggle()
+                        } label: {
+                            Image(systemName: "text.justify")
+                        }
+                        .foregroundStyle(.gray)
+                        
+                        Spacer()
                     }
-                    .foregroundStyle(.gray)
-
-                    Spacer()
+                    
+                    YearMonthPicker(year: $selectedYear, month: $selectedMonth, dateManager: dateManager)
+                    CalendarGrid(dateManager: dateManager, year: selectedYear, month: selectedMonth, selectedDate: $selectedDate)
+                    
+                    Divider().background(Color.red)
+                    
+                    Spacer(minLength: 30)
+                    BottomSheet(dateManager: dateManager, date: selectedDate)
+                    
                 }
-                
-                YearMonthPicker(year: $selectedYear, month: $selectedMonth, dateManager: dateManager)
-                CalendarGrid(dateManager: dateManager, year: selectedYear, month: selectedMonth, selectedDate: $selectedDate)
-                
-                Divider().background(Color.red)
-                
-                Spacer(minLength: 30)
-                BottomSheet(dateManager: dateManager, date: selectedDate)
-
+                SideMenuView(isShowing: $presentSideMenu, content: AnyView(SideMenu()))
             }
-            SideMenuView(isShowing: $presentSideMenu, content: AnyView(SideMenu()))
         }
     }
 }

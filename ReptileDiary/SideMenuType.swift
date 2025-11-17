@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import SwiftUI
 
 enum SideMenuRowType: Int, CaseIterable {
+    
     case calendar
     case animal
     
@@ -26,6 +28,15 @@ enum SideMenuRowType: Int, CaseIterable {
             return "calendar"
         case .animal:
             return "lizard"
+        }
+    }
+    
+    var view: View {
+        switch self {
+        case .calendar:
+            return MainView()
+        case .animal:
+            return AnimalView()
         }
     }
 }
