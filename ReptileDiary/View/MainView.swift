@@ -17,8 +17,44 @@ struct MainView: View {
     @State private var selectedMonth: Int = 11
     @State var selectedDate: Date = Date()
     
+    @State var selectedView
+    
     var body: some View {
         ZStack {
+            TabView {
+                Tab("Calendar", systemImage: "calendar") {
+                    VStack{
+                        HStack {
+                            Spacer()
+                            Image(systemName: "lizard.fill")
+                            Text("마뱀일기")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            Spacer()
+                            Button {
+                                presentSideMenu.toggle()
+                            } label: {
+                                Image(systemName: "text.justify")
+                            }
+                            .foregroundStyle(.gray)
+
+                            Spacer()
+                        }
+                        
+                        YearMonthPicker(year: $selectedYear, month: $selectedMonth, dateManager: dateManager)
+                        CalendarGrid(dateManager: dateManager, year: selectedYear, month: selectedMonth, selectedDate: $selectedDate)
+                        
+                        Divider().background(Color.red)
+                        
+                        Spacer(minLength: 30)
+                        BottomSheet(dateManager: dateManager, date: selectedDate)
+                    }
+                }
+                
+                Tab("Animal", systemImage: "lizard.fill") {
+                    AnimalView()
+                }
+            }
             VStack{
                 HStack {
                     Spacer()
@@ -48,6 +84,7 @@ struct MainView: View {
             }
             SideMenuView(isShowing: $presentSideMenu, content: AnyView(SideMenu()))
         }
+
     }
 }
 
