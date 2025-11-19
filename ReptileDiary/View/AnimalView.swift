@@ -6,49 +6,71 @@
 
 
 import SwiftUI
+import SwiftData
 
 struct AnimalView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var animals: [AnimalRecord]
     
     var body: some View {
-        ZStack {
-            NavigationView {
-                List {
-                    HStack{
-                        Image(systemName: "lizard.fill")
-                        Text("이름")
+        NavigationStack {
+            List(animals) { animal in
+                HStack{
+                    Image(systemName: "lizard.fill")
+                    Text(animal.name)
+                }
+                .frame(height: 50)
+
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        modelContext.delete(animal)
+                    } label: {
+                        Label("삭제", systemImage: "trash")
                     }
                 }
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text("Hi")
-                                .font(.system(size: 20))
-                                .fontWeight(.bold)
-                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            NavigationLink(destination: AddView()) {
-                                Image(systemName: "plus")
-                            }
-                        }
-                        
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button {
+                        print("수정")
+                    } label: {
+                        Label("수정", systemImage: "pencil")
                     }
+                    .tint(.blue)
+                }
             }
-            
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("나의 식구들")
+                        .font(.system(size: 20))
+                        .fontWeight(.bold)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: AddView()) {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
             
         }
     }
 }
 
+
 #Preview {
     AnimalView()
+        .modelContainer(for: [AnimalRecord.self])
 }
 
 struct AddView: View {
+
+    @Environment(\.modelContext) private var modelContext: ModelContext
    
     @State private var name = ""
     @State private var sex = ""
+    @State private var weight = "0"
     
     var body: some View {
         Form {
+            Circle().frame(width: 80, height: 80)
             Section("기본 정보") {
                 VStack {
                     HStack {
@@ -61,10 +83,8 @@ struct AddView: View {
                     }
                     HStack {
                         Text("무게: ")
-                        TextField("무게", text: $sex)
+                        TextField("무게", text: $weight)
                     }
-                    
-
                 }
 
             }
@@ -72,13 +92,20 @@ struct AddView: View {
             HStack {
                 Spacer()
                 Button("확인") {
-                    print("확인")
+                    guard let weight = Float(weight) else {
+                        print("유효하지 않은 무게")
+                        return
+                    }
+                    let newAnimal = AnimalRecord(name: name, sex: sex, weight: weight)
+                    modelContext.insert(newAnimal)
+                    do { try modelContext.save() }
+                    catch { print("저장 실패: \(error)")}
+                    print("확인완료")
                 }
                 Spacer()
             }
         }
-        .navigationTitle("추가하기")
-        .navigationBarTitleDisplayMode(.inline)
+        .background(.white)
 
     }
 }

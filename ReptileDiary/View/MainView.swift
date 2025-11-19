@@ -6,11 +6,10 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct MainView: View {
-
     var body: some View {
-
         ZStack {
             TabView {
                 Tab("Calendar", systemImage: "calendar") {
@@ -20,15 +19,13 @@ struct MainView: View {
                 Tab("Animal", systemImage: "lizard.fill") {
                     AnimalView()
                 }
-                
-
             }
         }
-
+        
     }
 }
 
 #Preview {
     MainView()
+        .modelContainer(for: [AnimalRecord.self])
 }
-

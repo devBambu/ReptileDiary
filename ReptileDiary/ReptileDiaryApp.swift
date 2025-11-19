@@ -11,9 +11,7 @@ import SwiftData
 @main
 struct ReptileDiaryApp: App {
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
+        let schema = Schema([AnimalRecord.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
@@ -25,9 +23,9 @@ struct ReptileDiaryApp: App {
 
     var body: some Scene {
         WindowGroup {
-            //ContentView()
             MainView()
+                .modelContainer(sharedModelContainer)
         }
-        .modelContainer(sharedModelContainer)
+        
     }
 }
