@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct AnimalView: View {
-    @State var isShowing: Bool = false
     
     var body: some View {
         ZStack {
