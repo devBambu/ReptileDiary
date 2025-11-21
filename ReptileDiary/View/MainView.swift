@@ -27,5 +27,5 @@ struct MainView: View {
 
 #Preview {
     MainView()
-        .modelContainer(for: [AnimalRecord.self])
+        .modelContainer(.preview)
 }

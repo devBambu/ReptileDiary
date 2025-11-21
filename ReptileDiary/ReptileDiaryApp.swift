@@ -28,4 +28,12 @@ struct ReptileDiaryApp: App {
         }
         
     }
+
+}
+
+extension ModelContainer {
+    static var preview: ModelContainer {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        return try! ModelContainer(for: AnimalRecord.self, configurations: config)
+    }
 }
