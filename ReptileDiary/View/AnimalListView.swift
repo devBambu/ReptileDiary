@@ -64,4 +64,3 @@ struct AnimalListView: View {
     AnimalListView()
         .modelContainer(.preview)
 }
-
