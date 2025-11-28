@@ -72,7 +72,7 @@ struct SideMenu: View {
                                 ForEach(SideMenuRowType.allCases, id: \.self) { row in
                                     rowView(isSelected: true, imageName: row.iconName, title: row.title) {
                                         NavigationLink {
-                                            AnimalView()
+                                            AnimalListView()
                                         } label: {
                                             Text("animalView")
                                         }

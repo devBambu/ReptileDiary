@@ -36,7 +36,7 @@ enum SideMenuRowType: Int, CaseIterable {
         case .calendar:
             return MainView()
         case .animal:
-            return AnimalView()
+            return AnimalListView()
         }
     }
 }

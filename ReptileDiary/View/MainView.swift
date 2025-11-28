@@ -17,7 +17,7 @@ struct MainView: View {
                 }
                 
                 Tab("Animal", systemImage: "lizard.fill") {
-                    AnimalView()
+                    AnimalListView()
                 }
             }
         }

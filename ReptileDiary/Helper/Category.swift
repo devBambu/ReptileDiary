@@ -8,5 +8,8 @@
 import Foundation
 
 struct Category {
-    let categories = ["성별": ["여자", "남자", "미구분"]]
+    let categories = [
+        "성별": ["여자", "남자", "미구분"],
+        "분류": ["도마뱀", "뱀", "거북이", "양서류", "기타"]
+    ]
 }

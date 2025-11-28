@@ -20,7 +20,7 @@ struct ReptileDiaryApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
+    
     var body: some Scene {
         WindowGroup {
             MainView()
