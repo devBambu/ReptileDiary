@@ -25,5 +25,5 @@ struct AnimalView: View {
 }
 
 #Preview {
-    AnimalView(animal: AnimalRecord(species: "도마뱀", name: "짜코", gender: "여자"))
+    AnimalView(animal: AnimalRecord(species: "도마뱀", name: "짜코", gender: "여자", feeding: []))
 }

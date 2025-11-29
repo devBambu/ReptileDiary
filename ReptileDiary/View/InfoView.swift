@@ -17,7 +17,9 @@ struct InfoView: View {
     @State private var gender = ""
     @State private var weight = ""
     @State private var birthday = Date()
-    @State private var feeding: Int? = 1
+    @State private var feeding: [String] = []
+    
+    @State var textWidth: CGFloat = 0
     
     @State private var knowBirthday: Bool = true
     
@@ -40,7 +42,7 @@ struct InfoView: View {
                 Text("기본 정보").font(.system(size: 20, weight: .bold))
                 // 필수 입력
                 infoButtons(info: "분류", text: $species, isEditing: isEditing, currentSelection: animal?.species)
-                infoTf<String>(info: "이름", text: $name, isEditing: isEditing, currentInfo: animal?.name)
+                infoTf<String>(info: "이름", text: $name, isEditing: isEditing, currentInfo: animal?.name, textWidth: $textWidth)
                 infoButtons(info: "성별", text: $gender, isEditing: isEditing, currentSelection: animal?.gender)
                 
                 // 선택 입력
@@ -63,8 +65,9 @@ struct InfoView: View {
             VStack(alignment: .leading, spacing: 15) {
                 Text("관리 정보").font(.system(size: 20, weight: .bold))
                 HStack {
-                    infoTf<Double>(info: "무게", text: $weight, isEditing: isEditing, currentInfo: animal?.weight)
+                    infoTf<Double>(info: "무게", text: $weight, isEditing: isEditing, currentInfo: animal?.weight, textWidth: $textWidth)
                     Text("g")
+                    Spacer()
                 }
                 HStack {
                     Text("피딩 주기").bold()
@@ -77,6 +80,7 @@ struct InfoView: View {
                     Text("회")
                     Spacer()
                 }
+                multipleInfoButtons(info: "피딩", text: $feeding, isEditing: isEditing, currentSelection: animal?.feeding)
             }
             .padding(.bottom, 25)
             
@@ -97,7 +101,7 @@ struct InfoView: View {
         
     }
     
-    func insert(species: String, name: String, gender: String, weight: Double?, birthday: Date?, feeding: Int?) {
+    func insert(species: String, name: String, gender: String, weight: Double?, birthday: Date?, feeding: [String]) {
         let bDay = knowBirthday ? birthday : nil
         
         let newAnimal = AnimalRecord(species: species, name: name, gender: gender, weight: weight, birthday: bDay, feeding: feeding)
@@ -107,7 +111,7 @@ struct InfoView: View {
         print("\(name) \(weight) 저장완료")
     }
     
-    func update(of animal: AnimalRecord, species: String, name: String, gender: String, weight: Double?, birthday: Date?, feeding: Int?) {
+    func update(of animal: AnimalRecord, species: String, name: String, gender: String, weight: Double?, birthday: Date?, feeding: [String]) {
         guard let idx = animals.firstIndex(of: animal) else { return }
         animals[idx].species = species
         animals[idx].name = name
@@ -135,19 +139,37 @@ struct infoTf<T>: View {
     let isEditing: Bool
     let currentInfo: T?
     
+    @Binding var textWidth: CGFloat
+    
+    var placeholder: String {
+        if let current = currentInfo {
+            return "\(current)"
+        } else {
+            return "\(info)을(를) 입력해주세요."
+        }
+    }
+    
     var body: some View {
         HStack{
             Text(info).bold()
-            if let current = currentInfo {
-                TextField("\(current)", text: $text)
-                    .disabled(isEditing ? false : true)
-                    .tint(.black)
-            } else {
-                TextField("\(info)를 입력해주세요.", text: $text)
-                    .frame(width: info == "무게" ? 50 : .infinity)
-            }
+        
+            TextField(placeholder, text: $text)
+                .frame(width: info == "무게" ? textWidth : .infinity)
+                .disabled(isEditing ? false : true)
+                .tint(.black)
+                .background {
+                    Text(text.isEmpty ? placeholder : text)
+                        .fixedSize()
+                        .hidden()
+                        .onGeometryChange(for: CGFloat.self) { proxy in
+                            proxy.size.width
+                        } action: { newVal in
+                            textWidth = newVal
+                        }
+                }
         }
     }
+    
 }
 
 struct infoButtons: View {
@@ -155,7 +177,7 @@ struct infoButtons: View {
     @Binding var text: String
     
     let isEditing: Bool
-    @State var currentSelection: String?
+    let currentSelection: String?
     
     var body: some View {
         HStack {
@@ -164,12 +186,35 @@ struct infoButtons: View {
                 ForEach(category, id: \.self) { c in
                     Button(c) {
                         text = c
-                        currentSelection = c
                     }.disabled(isEditing ? false : true)
-                        .background(currentSelection == c ? .green : .clear)
+                        .background(text == c ? .green : .clear)
                 }
             }
         }
     }
     
+}
+
+struct multipleInfoButtons: View {
+    let info: String
+    @Binding var text: [String]
+    
+    let isEditing: Bool
+    let currentSelection: [String]?
+    
+    var body: some View {
+        HStack {
+            Text(info).bold()
+            if let category = Category().categories[info] {
+                ForEach(category, id: \.self) { c in
+                    Button(c) {
+                        if text.contains(c){
+                            text.remove(at: text.firstIndex(of: c)!)
+                        } else { text.append(c) }
+                    }.disabled(isEditing ? false : true)
+                        .background(text.contains(c) ? .green : .clear)
+                }
+            }
+        }
+    }
 }

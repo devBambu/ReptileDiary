@@ -20,9 +20,9 @@ class AnimalRecord { // 모델을 만들어내는 설계도(=스키마), 클래�
 //    var father: AnimalRecord?
 //    var mother: AnimalRecord?
     
-    var feeding: Int?
+    var feeding: [String]
     
-    init(species: String, name: String, gender: String, weight: Double? = nil, birthday: Date? = nil, feeding: Int? = nil) {
+    init(species: String, name: String, gender: String, weight: Double? = nil, birthday: Date? = nil, feeding: [String]) {
         self.species = species
         self.name = name
         self.gender = gender
