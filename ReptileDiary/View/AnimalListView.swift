@@ -16,7 +16,7 @@ struct AnimalListView: View {
         NavigationStack {
             List(animals) { animal in
                 HStack{
-                    NavigationLink(destination: InfoView(animal: animal, isEditing: false)) {
+                    NavigationLink(destination: AnimalView(animal: animal)) {
                         Image(systemName: "lizard.fill")
                         Text(animal.name)
                             .font(.system(size: 15))
