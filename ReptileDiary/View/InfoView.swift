@@ -12,7 +12,10 @@ struct InfoView: View {
     @Environment(\.modelContext) private var modelContext: ModelContext
     @Query private var animals: [AnimalRecord]
     
+    var dateManager = DateManager.shared
+    
     @State private var species = ""
+    @State private var detailSpeciese = ""
     @State private var name = ""
     @State private var gender = ""
     @State private var weight = ""
@@ -21,13 +24,13 @@ struct InfoView: View {
     
     @State var textWidth: CGFloat = 0
     
-    @State private var knowBirthday: Bool = true
+    @State private var knowBirthday: Bool = false
     
     var animal: AnimalRecord?
     var isEditing: Bool
     
     var body: some View {
-        VStack {
+
             HStack {
                 Spacer()
                 Image(systemName: "lizard.fill")
@@ -38,10 +41,12 @@ struct InfoView: View {
                     .padding(30)
                 Spacer()
             }
+        
             VStack(alignment: .leading, spacing: 15) {
                 Text("기본 정보").font(.system(size: 20, weight: .bold))
                 // 필수 입력
                 infoButtons(info: "분류", text: $species, isEditing: isEditing, currentSelection: animal?.species)
+                infoTf<String>(info: "종", text: $detailSpeciese, isEditing: isEditing, currentInfo: animal?.detailSpecies, textWidth: $textWidth)
                 infoTf<String>(info: "이름", text: $name, isEditing: isEditing, currentInfo: animal?.name, textWidth: $textWidth)
                 infoButtons(info: "성별", text: $gender, isEditing: isEditing, currentSelection: animal?.gender)
                 
@@ -59,65 +64,61 @@ struct InfoView: View {
                     Text("모르겠어요!")
                 }
             }
+            .padding(.leading, 30)
             .padding(.bottom, 25)
-            
+            .frame(maxWidth: .infinity, alignment: .leading)
+
             // 선택 입력
             VStack(alignment: .leading, spacing: 15) {
                 Text("관리 정보").font(.system(size: 20, weight: .bold))
                 HStack {
                     infoTf<Double>(info: "무게", text: $weight, isEditing: isEditing, currentInfo: animal?.weight, textWidth: $textWidth)
                     Text("g")
-                    Spacer()
                 }
-                HStack {
-                    Text("피딩 주기").bold()
-                    Text("주")
-                    Picker("피딩 주기", selection: $feeding) {
-                        ForEach(1..<8) {
-                            Text("\($0)").tag($0)
-                        }
-                    }
-                    Text("회")
-                    Spacer()
-                }
+                
                 multipleInfoButtons(info: "피딩", text: $feeding, isEditing: isEditing, currentSelection: animal?.feeding)
             }
+            .padding(.leading, 30)
             .padding(.bottom, 25)
+            .frame(maxWidth: .infinity, alignment: .leading)
             
             HStack {
-                Spacer()
+
                 Button("확인") {
                     let dWeight = Double(weight)
                     if let animal = animal {
-                        update(of: animal, species: species, name: name, gender: gender, weight: dWeight, birthday: birthday, feeding: feeding)
+                        update(of: animal, species: species, detailSpecies: detailSpeciese, name: name, gender: gender, weight: dWeight, birthday: birthday, feeding: feeding)
                     } else {
-                        insert(species: species, name: name, gender: gender, weight: dWeight, birthday: birthday, feeding: feeding)
+                        insert(species: species, detailSpecies: detailSpeciese, name: name, gender: gender, weight: dWeight, birthday: birthday, feeding: feeding)
                     }
                 }
-                Spacer()
+
             }
-        }
-        .padding(30)
+
         
     }
     
-    func insert(species: String, name: String, gender: String, weight: Double?, birthday: Date?, feeding: [String]) {
-        let bDay = knowBirthday ? birthday : nil
+    func insert(species: String, detailSpecies: String, name: String, gender: String, weight: Double?, birthday: Date, feeding: [String]) {
+        let bDay = knowBirthday ? dateManager.getDateNoTime(of: birthday) : nil
+        let today = dateManager.getDateNoTime(of: Date())
         
-        let newAnimal = AnimalRecord(species: species, name: name, gender: gender, weight: weight, birthday: bDay, feeding: feeding)
+        let newAnimal = AnimalRecord(species: species, detailSpecies: detailSpeciese, name: name, gender: gender, weight: weight, birthday: bDay, feeding: feeding, date: today)
+        
         modelContext.insert(newAnimal)
+        
         do { try modelContext.save() }
         catch { print("저장 실패: \(error)")}
+        
         print("\(name) \(weight) 저장완료")
     }
     
-    func update(of animal: AnimalRecord, species: String, name: String, gender: String, weight: Double?, birthday: Date?, feeding: [String]) {
+    func update(of animal: AnimalRecord, species: String, detailSpecies: String, name: String, gender: String, weight: Double?, birthday: Date, feeding: [String]) {
         guard let idx = animals.firstIndex(of: animal) else { return }
         animals[idx].species = species
         animals[idx].name = name
         animals[idx].gender = gender
         animals[idx].weight = weight
-        animals[idx].birthday = birthday
+        animals[idx].birthday = knowBirthday ? dateManager.getDateNoTime(of: birthday) : nil
         animals[idx].feeding = feeding
         try? modelContext.save()
     }
@@ -158,14 +159,16 @@ struct infoTf<T>: View {
                 .disabled(isEditing ? false : true)
                 .tint(.black)
                 .background {
-                    Text(text.isEmpty ? placeholder : text)
-                        .fixedSize()
-                        .hidden()
-                        .onGeometryChange(for: CGFloat.self) { proxy in
-                            proxy.size.width
-                        } action: { newVal in
-                            textWidth = newVal
-                        }
+                    if info == "무게" {
+                        Text(text.isEmpty ? placeholder : text)
+                            .fixedSize()
+                            .hidden()
+                            .onGeometryChange(for: CGFloat.self) { proxy in
+                                proxy.size.width
+                            } action: { newVal in
+                                textWidth = newVal
+                            }
+                    }
                 }
         }
     }

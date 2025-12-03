@@ -9,16 +9,19 @@ import SwiftUI
 
 struct AnimalView: View {
     let animal: AnimalRecord
+    var dateManager = DateManager.shared
     
     var body: some View {
         Spacer(minLength: 30)
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
+            HStack(spacing: 5) {
                 Image(systemName: "lizard.fill")
                 Text(animal.name)
-                    .fontWeight(.bold)
+                    .font(.system(size: 20, weight: .bold))
                 Text(animal.gender == "여자" ? "♀︎" : animal.gender == "남자" ? "♂︎" : "?")
                     .fontWeight(.bold)
+                Text(animal.detailSpecies)
+                    .font(.system(size: 15))
                 Spacer()
             }
             ZStack {
@@ -58,7 +61,8 @@ struct AnimalView: View {
                     Image(systemName: Category().mangeViews[idx].icon)
                         .resizable()
                         .frame(width: 35, height: 35)
-                        
+                    Text(getLatestRecordView(of: Category().mangeViews[idx].view))
+                        .padding(.leading, 10)
                 }
             }
             .frame(height: 70)
@@ -67,8 +71,54 @@ struct AnimalView: View {
         .scrollContentBackground(.hidden)
         
     }
+    
+    func getLatestRecordDate<D>(record: [Date: DailyRecord<D>]) -> Date? {
+        return record.isEmpty ? nil : record.keys.sorted(by: >)[0]
+    }
+    
+    func getLatestRecordView(of view: ManageView) -> String {
+        switch view {
+        case .feeding :
+            if let key = getLatestRecordDate(record: animal.dailyFeed) {
+                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                return "\(days)일 전 \(animal.dailyFeed[key]?.content)를 먹었어요."
+            } else {
+                return "작성된 기록이 없어요."
+            }
+        case .weight :
+            if let key = getLatestRecordDate(record: animal.dailyFeed) {
+                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                return "\(days)일 전 \(animal.dailyWeight[key]?.content)g이었어요."
+            } else {
+                return "작성된 기록이 없어요."
+            }
+        case .mating :
+            if let key = getLatestRecordDate(record: animal.dailyFeed) {
+                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                return "\(days)일 전 \(animal.dailyMate[key]?.content)와(과) 메이팅 했어요."
+            } else {
+                return "작성된 기록이 없어요."
+            }
+        case .note :
+            if let key = getLatestRecordDate(record: animal.dailyFeed) {
+                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                return "\(animal.dailyNote[key]?.content), \(days)일 전"
+            } else {
+                return "작성된 기록이 없어요."
+            }
+        case .hospital :
+            if let key = getLatestRecordDate(record: animal.dailyFeed) {
+                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                return "\(animal.dailyHospital[key]?.content), \(days)일 전"
+            } else {
+                return "작성된 기록이 없어요."
+            }
+        }
+    }
+    
 }
 
 #Preview {
-    AnimalView(animal: AnimalRecord(species: "도마뱀", name: "짜코", gender: "여자", weight: 20, feeding: []))
+    let dateManager = DateManager.shared
+    AnimalView(animal: AnimalRecord(species: "도마뱀", detailSpecies: "크레스티드 게코", name: "짜코", gender: "여자", weight: 20, feeding: [], date: dateManager.getDate(year: 2025, month: 12, day: 2)))
 }

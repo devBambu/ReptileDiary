@@ -12,19 +12,34 @@ class DateManager {
     static var shared = DateManager()
     
     var calendar = Calendar.current
-    lazy var today = calendar.dateComponents(in: .current, from: Date())
-    
+
     var formatter = DateFormatter()
     
     func getDate(year: Int, month: Int, day: Int) -> Date {
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
+
         guard let date = calendar.date(from: DateComponents(year: year, month: month, day: day)) else {
-            return Date()
+            return getDateNoTime(of: Date())
         }
-        return date
+        
+        let timeDifference = Double(calendar.timeZone.secondsFromGMT(for: date))
+        
+        return date + timeDifference
+    }
+    
+    func getDateNoTime(of date: Date) -> Date {
+        calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
+        let timeDifference = Double(calendar.timeZone.secondsFromGMT(for: date))
+        
+        let components = calendar.dateComponents([.year, .month, .day], from: date + timeDifference)
+        let noTimeDate = calendar.date(from: components)!
+        
+        return noTimeDate
     }
     
     func getYearRange() -> [String] {
+        let date = getDateNoTime(of: Date())
+        let today = calendar.dateComponents([.year], from: date)
         guard let year = today.year else { return [] }
         return [Int]((year - 2)...(year + 2)).map { year in
             String(format: "%04d", year)
