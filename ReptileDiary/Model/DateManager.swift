@@ -12,51 +12,44 @@ class DateManager {
     static var shared = DateManager()
     
     var calendar = Calendar.current
-
     var formatter = DateFormatter()
     
-    func getDate(year: Int, month: Int, day: Int) -> Date {
+    func getDate(year: Int? = nil, month: Int? = nil, day: Int? = nil,of date: Date = Date()) -> Date {
         calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
-
-        guard let date = calendar.date(from: DateComponents(year: year, month: month, day: day)) else {
-            return getDateNoTime(of: Date())
+        if let year = year, let month = month, let day = day {
+            guard let dateFromComp = calendar.date(from: DateComponents(year: year, month: month, day: day)) else {
+                return calendar.startOfDay(for: Date())
+            }
+            return calendar.startOfDay(for: dateFromComp)
+        } else {
+            return calendar.startOfDay(for: date)
         }
-        
-        let timeDifference = Double(calendar.timeZone.secondsFromGMT(for: date))
-        
-        return date + timeDifference
     }
     
-    func getDateNoTime(of date: Date) -> Date {
-        calendar.timeZone = TimeZone(identifier: "Asia/Seoul")!
-        let timeDifference = Double(calendar.timeZone.secondsFromGMT(for: date))
+    func getDateRange() -> ClosedRange<Date> {
+        guard let year = calendar.dateComponents(in: TimeZone(identifier: "Asia/Seoul")!, from: Date()).year else {
+            print(#function, "날짜를 찾을 수 없습니다.")
+            return ClosedRange<Date>(uncheckedBounds: (Date(), Date()))
+        }
+        let first = getDate(year: year - 1, month: 1, day: 1)
+        let last = getDate(year: year + 1, month: 12, day: 31)
         
-        let components = calendar.dateComponents([.year, .month, .day], from: date + timeDifference)
-        let noTimeDate = calendar.date(from: components)!
-        
-        return noTimeDate
+        return first...last
     }
     
     func getYearRange() -> [String] {
-        let date = getDateNoTime(of: Date())
-        let today = calendar.dateComponents([.year], from: date)
-        guard let year = today.year else { return [] }
-        return [Int]((year - 2)...(year + 2)).map { year in
-            String(format: "%04d", year)
+        guard let year = calendar.dateComponents(in: TimeZone(identifier: "Asia/Seoul")!, from: Date()).year else {
+            return []
+        }
+        return [Int]((year - 1)...(year + 1)).map {
+            year in String(format: "%04d", year)
         }
     }
     
-    func getLastDay(of month: Int) -> Int {
-        switch month {
-        case 1, 3, 5, 7, 8, 10, 12:
-            return 31
-        case 2:
-            return 28
-        case 4, 6, 9, 11:
-            return 30
-        default:
-            return 0
-        }
+    func getLastDay(year: Int, month: Int) -> Int {
+        let date = getDate(year: year, month: month + 1, day: 1) - 86400
+        let day = calendar.dateComponents([.day], from: date)
+        return day.day ?? 0
     }
     
     func getWeekday(year: Int, month: Int, day: Int) -> Int {
@@ -69,8 +62,8 @@ class DateManager {
         return weekday
     }
     
-    func getRange(year: Int, month: Int) -> Int {
-        let days = getLastDay(of: month)
+    func getDays(year: Int, month: Int) -> Int {
+        let days = getLastDay(year: year, month: month)
         let firstWeekday = getWeekday(year: year, month: month, day: 1)
         
         return firstWeekday == 1 ? days + 6 : days + (firstWeekday - 2)
@@ -83,5 +76,6 @@ class DateManager {
         formatter.dateFormat = "yyyy년 M월 d일 EEEE"
         return formatter.string(from: date)
     }
+
 }
 

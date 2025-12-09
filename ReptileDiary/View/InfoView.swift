@@ -56,6 +56,8 @@ struct InfoView: View {
                     DatePicker("생일", selection: $birthday, displayedComponents: [.date])
                         .labelsHidden()
                         .disabled(!knowBirthday)
+                        .environment(\.timeZone, TimeZone(identifier: "Asia/Seoul")!)
+                        .environment(\.locale, Locale(identifier: "ko"))
                     Button {
                         knowBirthday.toggle()
                     } label: {
@@ -99,8 +101,8 @@ struct InfoView: View {
     }
     
     func insert(species: String, detailSpecies: String, name: String, gender: String, weight: Double?, birthday: Date, feeding: [String]) {
-        let bDay = knowBirthday ? dateManager.getDateNoTime(of: birthday) : nil
-        let today = dateManager.getDateNoTime(of: Date())
+        let bDay = knowBirthday ? dateManager.getDate(of: birthday) : nil
+        let today = dateManager.getDate()
         
         let newAnimal = AnimalRecord(species: species, detailSpecies: detailSpeciese, name: name, gender: gender, weight: weight, birthday: bDay, feeding: feeding, date: today)
         
@@ -118,7 +120,7 @@ struct InfoView: View {
         animals[idx].name = name
         animals[idx].gender = gender
         animals[idx].weight = weight
-        animals[idx].birthday = knowBirthday ? dateManager.getDateNoTime(of: birthday) : nil
+        animals[idx].birthday = knowBirthday ? dateManager.getDate(of: birthday) : nil
         animals[idx].feeding = feeding
         try? modelContext.save()
     }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AnimalView: View {
-    let animal: AnimalRecord
+    var animal: AnimalRecord
     var dateManager = DateManager.shared
     
     var body: some View {
@@ -32,6 +32,7 @@ struct AnimalView: View {
                 HStack(alignment: .center, spacing: 15){
                     HStack {
                         Text("나이").fontWeight(.bold)
+                        Text(animal.birthday == nil ? "모르겠어요!" : getAge(birthday: animal.birthday!))
                     }
                     HStack {
                         Text("무게").fontWeight(.bold)
@@ -47,7 +48,7 @@ struct AnimalView: View {
                 NavigationLink {
                     switch Category().mangeViews[idx].view {
                     case .feeding :
-                        InfoView(isEditing: false)
+                        FeedingView(animal: animal)
                     case .weight :
                         InfoView(isEditing: false)
                     case .mating :
@@ -80,45 +81,59 @@ struct AnimalView: View {
         switch view {
         case .feeding :
             if let key = getLatestRecordDate(record: animal.dailyFeed) {
-                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                let days = getDays(date: key)
                 return "\(days)일 전 \(animal.dailyFeed[key]?.content)를 먹었어요."
             } else {
                 return "작성된 기록이 없어요."
             }
         case .weight :
             if let key = getLatestRecordDate(record: animal.dailyFeed) {
-                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                let days = getDays(date: key)
                 return "\(days)일 전 \(animal.dailyWeight[key]?.content)g이었어요."
             } else {
                 return "작성된 기록이 없어요."
             }
         case .mating :
             if let key = getLatestRecordDate(record: animal.dailyFeed) {
-                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                let days = getDays(date: key)
                 return "\(days)일 전 \(animal.dailyMate[key]?.content)와(과) 메이팅 했어요."
             } else {
                 return "작성된 기록이 없어요."
             }
         case .note :
             if let key = getLatestRecordDate(record: animal.dailyFeed) {
-                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                let days = getDays(date: key)
                 return "\(animal.dailyNote[key]?.content), \(days)일 전"
             } else {
                 return "작성된 기록이 없어요."
             }
         case .hospital :
             if let key = getLatestRecordDate(record: animal.dailyFeed) {
-                let days = dateManager.getDateNoTime(of: Date()).timeIntervalSince(key) / 60 / 60
+                let days = getDays(date: key)
                 return "\(animal.dailyHospital[key]?.content), \(days)일 전"
             } else {
                 return "작성된 기록이 없어요."
             }
         }
     }
+       
+    func getAge(birthday: Date) -> String {
+        let today = dateManager.getDate()
+        let components = dateManager.calendar.dateComponents([.year, .month], from: birthday, to: today)
+        let years = components.year ?? 0
+        let months = components.month ?? 0
+        
+        return years > 0 ? "\(years) 살 \(months) 개월" : "\(months) 개월"
+    }
     
+    func getDays(date: Date) -> Int {
+        let today = dateManager.getDate()
+        let components = dateManager.calendar.dateComponents([.day], from: date, to: today)
+        return components.day ?? 0
+    }
 }
 
 #Preview {
     let dateManager = DateManager.shared
-    AnimalView(animal: AnimalRecord(species: "도마뱀", detailSpecies: "크레스티드 게코", name: "짜코", gender: "여자", weight: 20, feeding: [], date: dateManager.getDate(year: 2025, month: 12, day: 2)))
+    AnimalView(animal: AnimalRecord(species: "도마뱀", detailSpecies: "크레스티드 게코", name: "짜코", gender: "여자", weight: 20, birthday: dateManager.getDate(year: 2024, month: 1, day: 1), feeding: [], date: dateManager.getDate(year: 2025, month: 12, day: 2)))
 }

@@ -13,7 +13,7 @@ struct CalendarView: View {
     @State private var presentSideMenu = false
     @State private var presentSheet = false
     
-    @State private var selectedYear: Int = 2025
+    @State private var selectedYear: Int = 2
     @State private var selectedMonth: Int = 11
     @State var selectedDate: Date = Date()
     
@@ -61,7 +61,7 @@ struct YearMonthPicker: View {
         HStack {
             Picker("Year", selection: $year) {
                 let yearRange = dateManager.getYearRange()
-                ForEach(0..<5) {
+                ForEach(0..<3) {
                     Text(yearRange[$0]).tag(yearRange[$0])
                 }
             } currentValueLabel: {
@@ -108,8 +108,8 @@ struct CalendarGrid: View {
             .frame(width: 330)
             
             LazyVGrid(columns: columns, spacing: 5) {
-                let last = dateManager.getLastDay(of: month)
-                let range = dateManager.getRange(year: year, month: month)
+                let last = dateManager.getLastDay(year: year, month: month)
+                let range = dateManager.getDays(year: year, month: month)
                 let gap = range - last
                 ForEach(0..<range) { idx in
                     if idx < gap {
